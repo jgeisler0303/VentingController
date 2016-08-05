@@ -74,7 +74,7 @@ void cosmCommSend() {
 
 #define HTTP_WAITING_TIMEOUT 4000 // milliseconds, 
 
-byte remoteServer[] = { 173,203,98,29 };            // api.pachube.com
+byte remoteServer[] = { 64,94,18,120 };            // api.pachube.com
 EthernetClient localClient;
 
 //#define bufferSIZE 64
@@ -85,7 +85,7 @@ char pHttpBegin[]  = "HTTP/1.1";
 char pDateBegin[]  = "Date: ";
 
 #define http_get_header F("GET /v2/feeds/")
-#define http_host_key_header F(".csv HTTP/1.1\nHost: api.pachube.com\nX-PachubeApiKey: ")
+#define http_host_key_header F(".csv HTTP/1.1\nHost: api.xively.com\nX-ApiKey: ")
 #define http_put_header F("PUT /v2/feeds/")
 #define http_content_header F("\nContent-Type: text/csv\nContent-Length: ")
 #define http_connection_header F("\nConnection: close\n\n")
@@ -97,7 +97,7 @@ int cosmUpdateStart() {
 // Send PUT request. API v2
   localClient.print(http_put_header/*"PUT /v2/feeds/"*/);
   localClient.print(COSM_FEED_ID);
-  localClient.print(http_host_key_header/*".csv HTTP/1.1\nHost: api.pachube.com\nX-PachubeApiKey: "*/);
+  localClient.print(http_host_key_header/*".csv HTTP/1.1\nHost: api.xively.com\nX-ApiKey: "*/);
   localClient.print(COSM_API_KEY);
   //sendToServer(("\nUser-Agent: Arduino (Pachube Out)"));
   localClient.print(http_content_header/*"\nContent-Type: text/csv\nContent-Length: "*/);
