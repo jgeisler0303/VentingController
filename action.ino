@@ -8,6 +8,8 @@ const byte activeSector[]= {1, 0, 0};
 #define MIN_THRESHOLD_NORM MIN_THRESHOLD/MAX_THRESHOLD
 
 int8_t cycleStep[N_SECTORS];
+bool cycleAbort[N_SECTORS];
+float limitHumidity[N_SECTORS];
 int actionTime=-1;
 float thresholdFactor[N_SECTORS];
 float sectorHDiff[N_SECTORS];
@@ -25,6 +27,7 @@ DHT22_ERROR_t sectorError[N_SECTORS];
 void initAction() {
   for(byte i= 0; i<N_SECTORS; i++) {
     cycleStep[i]= -1;
+    cycleAbort[i]= false;
     thresholdFactor[i]= MIN_THRESHOLD_NORM;
     ventings24[i]= 0;
     tempPenalty[i]= 0;
@@ -43,11 +46,20 @@ void actionTask() {
   }
 }
 
+void supervisorTask() {
+  if(testOut==2) return;
+  for(byte i= 0; i<N_SECTORS; i++) {
+    sectorSupervisor(i);
+  }
+}
+
 void sectorAction(byte sect) {
   if(cycleStep[sect]==0) { // from last steps activation
     tempPenalty[sect]+= curTempPenalty[sect];
-    ventings24[sect]++;
-    ventings1[sect][ventings1Idx]++;
+    if(!cycleAbort[sect]) {
+        ventings24[sect]++;
+        ventings1[sect][ventings1Idx]++;
+    }
   }
   
   sectorHDiff[sect]= calcSectorHDiff(sect);
@@ -64,18 +76,34 @@ void sectorAction(byte sect) {
     thresholdFactor[sect]+= 1.0-THRESHOLD_TIME_CONST;
     
     if(cycleStep[sect]==VENT_CYCLES) {
-      stopVenting(sect);
+      if(!cycleAbort[sect])  
+        stopVenting(sect);
       actionTime= 0;
     } else if(cycleStep[sect]==(VENT_CYCLES+SETTLE_CYCLES)) {
       cycleStep[sect]= -1;  // venting cycle is finished
+      cycleAbort[sect]= false;
       actionTime= 0;
     }
   }
   if(cycleStep[sect]==-1 && ventCondition(sect)) {
+    limitHumidity[sect]= getSectorHumidity(sect)+1.0; 
     startVenting(sect);
+    cycleAbort[sect]= false;
     cycleStep[sect]= 0;
     actionTime= 0;
   }
+}
+
+void sectorSupervisor(byte sect) {
+  if(cycleStep[sect]==-1 || cycleStep[sect]>=VENT_CYCLES || cycleAbort[sect])
+      return;
+  
+  if(getSectorCurrentHumidity(sect)>limitHumidity[sect]) {
+      cycleAbort[sect]= true;
+      stopVenting(sect);
+      actionTime= 0;
+  }
+  limitHumidity[sect]-= 0.1;
 }
 
 boolean ventCondition(byte sect) {
@@ -135,6 +163,19 @@ float getSectorHumidity(byte sect) {
   switch(sect) {
     case 0:
 	  return (1.0/3.0)*(meanHumidity[0]+meanHumidity[2]+meanHumidity[3]);
+    case 1:
+      return 0;
+    case 2:
+      return 0;
+    default:
+      return 0;
+  }
+}
+
+float getSectorCurrentHumidity(byte sect) {
+  switch(sect) {
+    case 0:
+      return (1.0/3.0)*(currentHumidity[0]+currentHumidity[2]+currentHumidity[3]);
     case 1:
       return 0;
     case 2:

@@ -32,14 +32,14 @@ void dataTask() {
     if(dhtPins[i]<0) continue;
     
     dht22.setPin(dhtPins[i]);
-    DHT22_ERROR_t e= dht22.readData();
+    DHT22_ERROR_t e= dht22.readDataNow();
     if (e==DHT_ERROR_NONE) {
       currentTemp[i]= dht22.getTemperatureC();
       currentHumidity[i]=dht22.getHumidity();
       if(dhtInside[i])
-        currentAbsHumidity[i]= massOfWater(currentTemp[i]-1.0, currentHumidity[i]-5.0);
+        currentAbsHumidity[i]= massOfWater(currentTemp[i]-1.0, min(90.0, currentHumidity[i]-5.0));
       else
-        currentAbsHumidity[i]= massOfWater(currentTemp[i]+1.0, max(50.0, currentHumidity[i]+5.0));
+        currentAbsHumidity[i]= massOfWater(currentTemp[i]+2.0, max(50.0, currentHumidity[i]+5.0));
             
       meanTemp[i]+= currentTemp[i];
       meanHumidity[i]+=currentHumidity[i];
