@@ -8,6 +8,9 @@
 
 //#define SERIAL_OUT
 
+void task50ms();
+void task1s();
+
 TimedAction task50msAction = TimedAction(50,task50ms);
 TimedAction task1sAction = TimedAction(1000,task1s);
 byte counterSec= 57;
@@ -94,6 +97,7 @@ void task1s() {
 
 void task30s() {
   dataTask();
+  supervisorTask();
   #ifdef SERIAL_OUT
   Serial.println("Task30");
   #endif

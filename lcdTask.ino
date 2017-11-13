@@ -302,7 +302,10 @@ byte printSectorC(byte i, Print& out) {
     if(cycleStep[i]==-1) {
       n+= out.print(F("idle")); // 10
     } else if(cycleStep[i]<VENT_CYCLES) {
-      n+= out.print(F("vent"));
+      if(cycleAbort[i])
+        n+= out.print(F("abort"));
+      else
+        n+= out.print(F("vent"));
     } else if(cycleStep[i]<(VENT_CYCLES+SETTLE_CYCLES)) {
       n+= out.print(F("setl"));
     }

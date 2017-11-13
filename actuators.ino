@@ -17,7 +17,7 @@ byte windowCloseFinishTimer[N_SECTORS];
 
 
 void initActuators() {
-  ioExp.pinMode((uint16_t)0xF000);
+  ioExp.pinMode((uint16_t)0x0FFF);
   ioExp.port(0);
   /*Serial.println(ioExp.pinMode(), BIN);
   Serial.println(ioExp.port(), BIN);

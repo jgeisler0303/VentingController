@@ -6,9 +6,12 @@
 #include <Time.h>
 
 extern int8_t cycleStep[N_SECTORS];
+extern bool cycleAbort[N_SECTORS];
 extern float meanTemp[];
 extern float meanHumidity[];
+extern float currentHumidity[N_SENSORS];
 extern float meanAbsHumidity[];
+extern float limitHumidity[];
 extern DHT22_ERROR_t dht22ErrorCode[];
 extern float targetTempVal;
 
