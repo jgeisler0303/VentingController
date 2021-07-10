@@ -1,4 +1,4 @@
-#include <Time.h>
+#include <TimeX.h>
 
 void updateTime() {
   int hr;
@@ -16,7 +16,8 @@ void updateTime() {
   } else
     c++;
   
-  c++;
+  c++; // skip space
+  c++; // skip first letter of month
   char m2= *c++;
   switch(*c++) {
     case 'b':
@@ -57,18 +58,18 @@ void updateTime() {
       break;
   }
   
-  c++;
+  c++; //skip space
   yr= 0;
   for(byte i= 0; i<4; i++) {
     yr*= 10;
     yr+= *c++ - '0';
   }
   
-  c++;
+  c++; // skip space
   hr= *c++ - '0'; hr*= 10; hr+= *c++ - '0';  
-  c++;
+  c++; // skip :
   mn= *c++ - '0'; mn*= 10; mn+= *c++ - '0';  
-  c++;
+  c++; //skip :
   sec= *c++ - '0'; sec*= 10; sec+= *c++ - '0';
   
   #ifdef SERIAL_OUT

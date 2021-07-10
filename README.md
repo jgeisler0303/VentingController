@@ -18,8 +18,8 @@ The code is an Arduino sketch with several modules (tabs). Open the main tab (Ve
 
 In order to successfully compile the code you need to put several extra libraries into Arduino sketchbook/libraries folder:
 * DHT22 please download special version from: https://github.com/jgeisler0303/Arduino-DHT22
-* Time.h: http://playground.arduino.cc/Code/Time
-* TimedAction: http://playground.arduino.cc/Code/TimedAction
+* TimeX.h: http://playground.arduino.cc/Code/Time
+* TimedAction: http://playground.arduino.cc/Code/TimedAction oder now https://github.com/Glumgad/TimedAction
 * LiquidCrystal_I2C please download special version from: https://github.com/jgeisler0303/Arduino-LiquidCrystal-I2C-library
 * StopWatch: http://playground.arduino.cc/Code/StopWatchClass
 * Mcp23s17 please download special version from: https://github.com/jgeisler0303/Mcp23s17

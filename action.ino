@@ -1,6 +1,6 @@
 // DONE
 #include <DHT22.h>
-#include <Time.h>
+#include <TimeX.h>
 #include "globalVars.h"
 #include "config.h"
 
@@ -112,36 +112,52 @@ boolean ventCondition(byte sect) {
     && (tempPenalty[sect]+curTempPenalty[sect])<=TEMP_PENALTY_THRESHOLD
     && sectorError[sect]==0;
 }
-
 float calcSectorHDiff(byte sect) {
-  switch(sect) {
-    case 0:
-      return (1.0/3.0)*(meanAbsHumidity[0]+meanAbsHumidity[2]+meanAbsHumidity[3])-meanAbsHumidity[4];
-    case 1:
-      return 13.3;
-    case 2:
-      return 13.3;
-    default:
-      return 13.3;
-  }
+    if(sect>=N_SECTORS) return 13.3;
+    
+    float hi= 0.0;
+    float n= 0.0;
+    for(int8_t s= 0; s<N_SENSORS; ++s) {
+        int8_t idx= sectorSensors[sect][s];
+        if(idx<0 || dhtInside[idx]==0) continue;
+        
+        hi+= meanAbsHumidity[idx];
+        n+= 1.0;
+    }
+    if(n==0.0) return 13.3;
+    
+    hi/= n;
+    
+    float ho= 0.0;
+    n= 0.0;
+    for(int8_t s= 0; s<N_SENSORS; ++s) {
+        int8_t idx= sectorSensors[sect][s];
+        if(idx<0 || dhtInside[idx]==1) continue;
+        
+        ho+= meanAbsHumidity[idx];
+        n+= 1.0;
+    }
+    if(n==0.0) return 13.3;
+    
+    ho/= n;
+    
+    return hi - ho;
 }
-
 float calcSectorTDiff(byte sect) {
-  float temp;
-  switch(sect) {
-    case 0:
-      temp= meanTemp[4];
-      break;
-    case 1:
-      temp= 13.3;
-      break;
-    case 2:
-      temp= 13.3;
-      break;
-    default:
-      temp= 13.3;
-      break;
+  if(sect>=N_SECTORS) return 13.3;
+  
+  float temp= 0.0;
+  float n= 0.0;
+  for(int8_t s= 0; s<N_SENSORS; ++s) {
+      int8_t idx= sectorSensors[sect][s];
+      if(idx<0 || dhtInside[idx]==1) continue;
+      
+      temp+= meanTemp[idx];
+      n+= 1.0;
   }
+  if(n==0.0) return 13.3;
+  temp/= n;
+  
   targetTempVal= targetTemp();
   temp-= targetTempVal;
   if(temp>2.0) temp-= 2.0;
@@ -158,44 +174,53 @@ float targetTemp() {
     return 14.5 - cos((month(t)-1)/12.0*2*PI)*2.5;
   }
 }
-
 float getSectorHumidity(byte sect) {
-  switch(sect) {
-    case 0:
-	  return (1.0/3.0)*(meanHumidity[0]+meanHumidity[2]+meanHumidity[3]);
-    case 1:
-      return 0;
-    case 2:
-      return 0;
-    default:
-      return 0;
-  }
+    if(sect>=N_SECTORS) return 0.0;
+    
+    float h= 0.0;
+    float n= 0.0;
+    for(int8_t s= 0; s<N_SENSORS; ++s) {
+        int8_t idx= sectorSensors[sect][s];
+        if(idx<0 || dhtInside[idx]==0) continue;
+        
+        h+= meanHumidity[idx];
+        n+= 1.0;
+    }
+    if(n==0.0) return 0.0;
+    
+    return h/n;
 }
-
 float getSectorCurrentHumidity(byte sect) {
-  switch(sect) {
-    case 0:
-      return (1.0/3.0)*(currentHumidity[0]+currentHumidity[2]+currentHumidity[3]);
-    case 1:
-      return 0;
-    case 2:
-      return 0;
-    default:
-      return 0;
-  }
+    if(sect>=N_SECTORS) return 0.0;
+    
+    float h= 0.0;
+    float n= 0.0;
+    for(int8_t s= 0; s<N_SENSORS; ++s) {
+        int8_t idx= sectorSensors[sect][s];
+        if(idx<0 || dhtInside[idx]==0) continue;
+        
+        h+= currentHumidity[idx];
+        n+= 1.0;
+    }
+    if(n==0.0) return 0.0;
+    
+    return h/n;
 }
-
 DHT22_ERROR_t calcSectorError(byte sect) {
-  switch(sect) {
-    case 0:
-      return max(dht22ErrorCode[3], max(dht22ErrorCode[2], max(dht22ErrorCode[0], dht22ErrorCode[4])));
-    case 1:
-      return DHT_ERROR_NOT_PRESENT;
-    case 2:
-      return DHT_ERROR_NOT_PRESENT;
-    default:
-      return DHT_ERROR_NOT_PRESENT;
-  }
+    if(sect>=N_SECTORS) return DHT_ERROR_NOT_PRESENT;
+    
+    DHT22_ERROR_t e= DHT_ERROR_NONE;
+    bool any= false;
+    for(int8_t s= 0; s<N_SENSORS; ++s) {
+        int8_t idx= sectorSensors[sect][s];
+        if(idx<0) continue;
+        
+        e= max(e, dht22ErrorCode[idx]);
+        any= true;
+    }
+    if(!any) e= DHT_ERROR_NOT_PRESENT;
+    
+    return e;
 }
 
 byte calcTempPenalty(byte sect) {

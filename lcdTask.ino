@@ -6,7 +6,7 @@
 #include "cosmComm.h"
 #include "config.h"
 #include "globalVars.h"
-#include <Time.h>
+#include <TimeX.h>
 
 LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 StopWatch lcdResetTimer;
@@ -29,8 +29,8 @@ void lcdTaskInit() {
 
 void lcdTask() {
   if(testOut!=0) return;
-  lcdToggle1++; if(lcdToggle1>5) lcdToggle1= 0;
-  lcdToggle2++; if(lcdToggle2>3) lcdToggle2= 0;
+  lcdToggle1++; if(lcdToggle1>N_SENSORS_IN) lcdToggle1= 1;
+  lcdToggle2++; if(lcdToggle2>N_SENSORS_OUT) lcdToggle2= 1;
   lcdToggle3++; if(lcdToggle3>1) lcdToggle3= 0;
   if(lcdResetTimer.state()==StopWatch::RUNNING && lcdResetTimer.elapsed()>20000) {
     lcd.noBacklight();
@@ -110,15 +110,10 @@ byte printLine(byte line, Print& out) {
       // out.print(pDateBuffer);
       break;
     case 1:
-      snr= 0;
-      if(lcdToggle1>3) snr= 3;
-      else if(lcdToggle1>1) snr= 2;
-      return printSensor(snr, out);
+      return printSensor(1, lcdToggle1, out);
       break;
     case 2:
-      if(lcdToggle2>1) snr= 4;
-      else snr= 1;
-      return printSensor(snr, out);
+      return printSensor(0, lcdToggle2, out);
       break;
     case 3:
       return printSectorA(0, out);
@@ -229,35 +224,29 @@ byte printDHT22Err(DHT22_ERROR_t e, Print& out) {
   return n;  
 }  
 
-byte printSensor(byte i, Print& out) {
+byte printSensor(byte inside, byte i, Print& out) {
   byte n= 0;
-  switch(i) {
-    case 0:
-    case 2:
-    case 3:
+
+  byte idx= 0;
+  byte count= 0;
+  do {
+    if(dhtInside[idx]==inside) count++;
+    idx++;
+  } while(idx<N_SENSORS && count<i);
+  idx--;
+  
+  if(inside)
       n+= out.print(F("In"));
-      if(i==0)
-        n+= out.print('1');
-      else if(i==3)
-        n+= out.print('3');
-      else
-        n+= out.print('2');
-      break;
-    case 1:
-    case 4:
+  else
       n+= out.print(F("Out"));
-      if(i==4)
-        n+= out.print('2');
-      else
-        n+= out.print('1');
-      break;
-  }
+  n+= out.print((char)('0'+i));
   n+= out.print(' ');
-  if(dht22CurrentErrorCode[i]==DHT_ERROR_NONE) {
-    n+= out.print(currentTemp[i],1); n+= out.print(char(223)); n+= out.print(F("C "));
-    n+= out.print(currentHumidity[i],0); n+= out.print(F("% "));
+  
+  if(dht22CurrentErrorCode[idx]==DHT_ERROR_NONE) {
+    n+= out.print(currentTemp[idx],1); n+= out.print(char(223)); n+= out.print(F("C "));
+    n+= out.print(currentHumidity[idx],0); n+= out.print(F("% "));
   } else
-    n+= printDHT22Err(dht22CurrentErrorCode[i], out);
+    n+= printDHT22Err(dht22CurrentErrorCode[idx], out);
     
   //out.print();
   // out.print(currentAbsHumidity[i],1); out.print("g/m3"); //179
@@ -404,4 +393,3 @@ void printTestMsg2() {
   Serial.println();
   #endif
 }
-

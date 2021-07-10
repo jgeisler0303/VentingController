@@ -25,6 +25,16 @@ void initActuators() {
   ioExp.digitalWrite(15, 1);
   Serial.println(ioExp.port(), BIN);*/
   
+  //use dedicated output pins per actuator
+  /*
+  for (byte i = 0; i< N_ACTORS_PER_SECTION; i++)
+  {
+    for (byte j = 0; j< N_SECTORS; j++)
+    {
+      if(ventPins[i][j]>=0) pinMode(ventPins[i][j],OUTPUT);
+    }
+  }
+  */
   for(byte i= 0; i<N_SECTORS; i++) {
     windowOpenFinishTimer[i]= 0;
     windowCloseFinishTimer[i]= 0;
@@ -35,6 +45,13 @@ void startVenting(byte sect) {
   for(byte j= 0; j<N_ACTORS_PER_SECTION; j++) {
     if(ventPins[sect][j]>=0) ioExp.digitalWriteD(ventPins[sect][j], HIGH);
     
+    /* 
+    if(ventPins[sect][j]>=0)
+    {
+      digitalWrite(ventPins[sect][j], HIGH);
+      windowOpenFinishTimer[sect]= WINDOW_FINISH_TIME;
+    }
+    */
     if(windowOpenPins[sect][j]>=0) {
       ioExp.digitalWriteD(windowOpenPins[sect][j], HIGH);
       windowOpenFinishTimer[sect]= WINDOW_FINISH_TIME;
@@ -50,6 +67,13 @@ void stopVenting(byte sect) {
       ioExp.digitalWriteD(windowClosePins[sect][j], HIGH);
       windowCloseFinishTimer[sect]= WINDOW_FINISH_TIME;
     }
+    /*
+    if(ventPins[1][j]>=0)
+    {
+      digitalWrite(ventPins[sect+1][j], LOW);
+      windowCloseFinishTimer[sect]= WINDOW_FINISH_TIME;
+    }
+    */
   }
   ioExp.applyDigitalWrite();
 }
@@ -59,15 +83,19 @@ void windowFinishTask() {
     if(windowOpenFinishTimer[i]>0) {
       windowOpenFinishTimer[i]--;
       if(windowOpenFinishTimer[i]==0)      
-        for(byte j= 0; j<N_ACTORS_PER_SECTION; j++)
+        for(byte j= 0; j<N_ACTORS_PER_SECTION; j++) {
           ioExp.digitalWriteD(windowOpenPins[i][j], LOW);
+          // if (ventPins[sect+1][j]>=0) digitalWrite(ventPins[sect+1][j], HIGH);
+        }
     }
 
     if(windowCloseFinishTimer[i]>0) {
       windowCloseFinishTimer[i]--;
       if(windowCloseFinishTimer[i]==0)      
-        for(byte j= 0; j<N_ACTORS_PER_SECTION; j++)
+        for(byte j= 0; j<N_ACTORS_PER_SECTION; j++) {
           ioExp.digitalWriteD(windowClosePins[i][j], LOW);
+          // if (ventPins[sect][j]>=0) digitalWrite(ventPins[sect][j], LOW);
+        }
     }
   }
   ioExp.applyDigitalWrite();

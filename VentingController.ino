@@ -3,7 +3,7 @@
 #include <DHT22.h>
 #include "globalVars.h"
 #include "button.h"
-#include <Time.h>
+#include <TimeX.h>
 #include "cosmComm.h"
 
 //#define SERIAL_OUT
@@ -155,6 +155,7 @@ void setup(void) {
       writeEEPROM();
     }
   }
+  // writeEEPROM();
   readEEPROM();
   #ifdef SERIAL_OUT
   #endif

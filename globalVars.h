@@ -3,7 +3,7 @@
 
 #include <DHT22.h>
 #include "config.h"
-#include <Time.h>
+#include <TimeX.h>
 
 extern int8_t cycleStep[N_SECTORS];
 extern bool cycleAbort[N_SECTORS];

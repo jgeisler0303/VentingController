@@ -5,7 +5,7 @@
 #include <SPI.h>
 #include "config.h"
 #include "XivelyKey.h"
-#include <Time.h>
+#include <TimeX.h>
 
 byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 
@@ -74,15 +74,15 @@ void cosmCommSend() {
 
 #define HTTP_WAITING_TIMEOUT 4000 // milliseconds, 
 
-byte remoteServer[] = { 64,94,18,120 };            // api.pachube.com
+byte remoteServer[] = { 192,168,188,77 };            // api.pachube.com
 EthernetClient localClient;
 
 //#define bufferSIZE 64
 //char pDataBuffer[bufferSIZE];
 char pDateBuffer[]= "XXXXXXXXXXXXXXXXXXXX";
 
-char pHttpBegin[]  = "HTTP/1.1";
-char pDateBegin[]  = "Date: ";
+char pHttpBegin[]  = "HTTP/1.";
+char pDateBegin[]  = "Date:";
 
 #define http_get_header F("GET /v2/feeds/")
 #define http_host_key_header F(".csv HTTP/1.1\nHost: api.xively.com\nX-ApiKey: ")
@@ -91,7 +91,7 @@ char pDateBegin[]  = "Date: ";
 #define http_connection_header F("\nConnection: close\n\n")
 
 int cosmUpdateStart() {
-  if(!(localClient.connect(remoteServer, 80) > 0))
+  if(!(localClient.connect(remoteServer, 8080) > 0))
     return 1;
 
 // Send PUT request. API v2
@@ -195,6 +195,9 @@ int getHttpStatusCodeFromHeader(char* pFirstLineOfHttpHeader) {
   char* pReferenceChar = pHttpBegin;    
   char* pIter = pFirstLineOfHttpHeader;
 
+  while(*pIter==' ') // Remove the leading space.
+    pIter++;
+    
   for( ; *pReferenceChar != '\0' && *pIter != '\0'; ++pIter, ++pReferenceChar) {
     if(*pReferenceChar!=*pIter)
       return 0; // Not match
@@ -203,6 +206,10 @@ int getHttpStatusCodeFromHeader(char* pFirstLineOfHttpHeader) {
   if('\0'==*pIter)
     return 0; // The input string is too short.
 
+  pIter++; // skip http header sub version
+  if('\0'==*pIter)
+    return 0; // The input string is too short.
+  
   while(*pIter==' ') // Remove the leading space.
     pIter++;
 
@@ -214,6 +221,9 @@ boolean getDateFromHeader(char* pDateLineOfHttpHeader) {
   char* pReferenceChar= pDateBegin;    
   char* pIter= pDateLineOfHttpHeader;
 
+  while(*pIter==' ') // Remove the leading space.
+    pIter++;
+    
   for( ; *pReferenceChar!='\0' && *pIter!='\0'; ++pIter, ++pReferenceChar) {
     if(*pReferenceChar!=*pIter)
       return false; // Not match
@@ -259,4 +269,3 @@ unsigned int getline(char *buffer, unsigned int bufsize) {
   buffer[length]= '\0';
   return length;
 }
-
